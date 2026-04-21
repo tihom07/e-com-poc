@@ -1,0 +1,33 @@
+### Test 1 - Successful Registration
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Mohit Sharma",
+  "email": "mohit@example.com",
+  "password": "Mohit123"
+}
+
+###
+
+### Test 2 - Duplicate Email
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Mohit Sharma",
+  "email": "mohit@example.com",
+  "password": "Mohit123"
+}
+
+###
+
+### Test 3 - Validation Errors
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "not-an-email",
+  "password": "123"
+}

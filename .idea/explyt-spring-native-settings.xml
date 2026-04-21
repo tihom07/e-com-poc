@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SpringNativeSettings">
+    <option name="linkedExternalProjectsSettings">
+      <NativeProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/e-com-backend/e-com-backend/src/main/java/com/infy/poc/e_com_backend/EComBackendApplication.java" />
+        <option name="qualifiedMainClassName" value="com.infy.poc.e_com_backend.EComBackendApplication" />
+        <option name="runConfigurationName" value="EComBackendApplication" />
+        <option name="runConfigurationType" value="APPLICATION" />
+      </NativeProjectSettings>
+    </option>
+  </component>
+</project>
