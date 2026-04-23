@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { registerUser } from '../api/auth';
+import { loginUser } from '../api/login';
 
-const Register = ({ onNavigate }) => {
+const Login = ({ onNavigate }) => {
 
     const [formData, setFormData] = useState({
-        name: '',
         email: '',
         password: ''
     });
@@ -20,16 +19,12 @@ const Register = ({ onNavigate }) => {
 
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim())
-            newErrors.name = 'Name is required';
         if (!formData.email.trim())
             newErrors.email = 'Email is required';
         else if (!/\S+@\S+\.\S+/.test(formData.email))
             newErrors.email = 'Enter a valid email';
         if (!formData.password)
             newErrors.password = 'Password is required';
-        else if (formData.password.length < 6)
-            newErrors.password = 'Password must be at least 6 characters';
         return newErrors;
     };
 
@@ -46,27 +41,16 @@ const Register = ({ onNavigate }) => {
         setSuccessMessage('');
 
         try {
-            await registerUser(formData);
-            setSuccessMessage('Account created successfully!');
-            setFormData({ name: '', email: '', password: '' });
+            const data = await loginUser(formData);
+            // Save token to localStorage
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('name', data.name);
+            localStorage.setItem('email', data.email);
+            setSuccessMessage(`Welcome back, ${data.name}!`);
+            setFormData({ email: '', password: '' });
         } catch (error) {
-            console.log('Error response:', error.response);
-
-            if (error.response && error.response.data) {
-                const data = error.response.data;
-
-                // Handle "Email already registered" string error
-                if (typeof data === 'string') {
-                    setErrors({ general: data });
-
-                // Handle { error: "Email already registered" } object
-                } else if (data.error) {
-                    setErrors({ general: data.error });
-
-                // Handle field validation errors like { email: "..." }
-                } else {
-                    setErrors(data);
-                }
+            if (error.response?.data) {
+                setErrors(error.response.data);
             } else {
                 setErrors({ general: 'Something went wrong. Please try again.' });
             }
@@ -78,8 +62,8 @@ const Register = ({ onNavigate }) => {
     return (
         <div style={styles.container}>
             <div style={styles.card}>
-                <h2 style={styles.title}>Create Account</h2>
-                <p style={styles.subtitle}>Fill in the details below to register</p>
+                <h2 style={styles.title}>Welcome Back</h2>
+                <p style={styles.subtitle}>Login to your account</p>
 
                 {successMessage && (
                     <div style={styles.success}>{successMessage}</div>
@@ -89,23 +73,11 @@ const Register = ({ onNavigate }) => {
                     <div style={styles.errorBox}>{errors.general}</div>
                 )}
 
-                <form onSubmit={handleSubmit} style={styles.form}>
+                {errors.error && (
+                    <div style={styles.errorBox}>{errors.error}</div>
+                )}
 
-                    <div style={styles.field}>
-                        <label style={styles.label}>Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Name"
-                            style={{
-                                ...styles.input,
-                                borderColor: errors.name ? '#e53e3e' : '#e2e8f0'
-                            }}
-                        />
-                        {errors.name && <span style={styles.error}>{errors.name}</span>}
-                    </div>
+                <form onSubmit={handleSubmit} style={styles.form}>
 
                     <div style={styles.field}>
                         <label style={styles.label}>Email</label>
@@ -114,7 +86,7 @@ const Register = ({ onNavigate }) => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="Email"
+                            placeholder="john@example.com"
                             style={{
                                 ...styles.input,
                                 borderColor: errors.email ? '#e53e3e' : '#e2e8f0'
@@ -130,7 +102,7 @@ const Register = ({ onNavigate }) => {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="Password (Min 6 characters)"
+                            placeholder="Enter your password"
                             style={{
                                 ...styles.input,
                                 borderColor: errors.password ? '#e53e3e' : '#e2e8f0'
@@ -148,19 +120,21 @@ const Register = ({ onNavigate }) => {
                             cursor: loading ? 'not-allowed' : 'pointer'
                         }}
                     >
-                        {loading ? 'Creating account...' : 'Register'}
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
 
                 </form>
+
                 <p style={styles.registerText}>
-                    Already have an account?{' '}
+                    Don't have an account?{' '}
                     <span
                         style={styles.registerLink}
-                        onClick={() => onNavigate('login')}
+                        onClick={() => onNavigate('register')}
                     >
-                        Login here
+                        Register here
                     </span>
                 </p>
+
             </div>
         </div>
     );
@@ -214,7 +188,6 @@ const styles = {
         border: '1.5px solid #e2e8f0',
         borderRadius: '8px',
         outline: 'none',
-        transition: 'border-color 0.2s',
         color: '#1a202c',
     },
     error: {
@@ -262,4 +235,4 @@ const styles = {
     },
 };
 
-export default Register;
+export default Login;
