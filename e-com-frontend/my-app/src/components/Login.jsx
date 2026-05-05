@@ -46,8 +46,10 @@ const Login = ({ onNavigate }) => {
             localStorage.setItem('token', data.token);
             localStorage.setItem('name', data.name);
             localStorage.setItem('email', data.email);
-            setSuccessMessage(`Welcome back, ${data.name}!`);
-            setFormData({ email: '', password: '' });
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('name', data.name);
+            localStorage.setItem('email', data.email);
+            onNavigate('dashboard');
         } catch (error) {
             if (error.response?.data) {
                 setErrors(error.response.data);

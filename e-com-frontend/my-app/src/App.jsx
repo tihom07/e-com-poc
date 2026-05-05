@@ -3,9 +3,25 @@ import React from 'react'
 import { useState } from 'react';
 import Register from './components/Register';
 import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 
 function App() {
-    const [page, setPage] = useState('login');
+
+    const getInitialPage = () => {
+        const token = localStorage.getItem('token');
+        return token ? 'dashboard' : 'login';
+    };
+
+    const [page, setPage] = useState(getInitialPage);
+
+    const handleNavigate = (newPage) => {
+        setPage(newPage);
+    };
+
+    // Dashboard has no top nav — clean protected page
+    if (page === 'dashboard') {
+        return <Dashboard onNavigate={handleNavigate} />;
+    }
 
     return (
         <div>
@@ -48,8 +64,8 @@ function App() {
             </div>
 
             {page === 'login'
-                ? <Login onNavigate={setPage} />
-                : <Register onNavigate={setPage} />}
+                ? <Login onNavigate={handleNavigate} />
+                : <Register onNavigate={handleNavigate} />}
         </div>
     );
 }
