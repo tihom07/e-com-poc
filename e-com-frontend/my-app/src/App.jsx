@@ -1,15 +1,16 @@
-import React from 'react'
-
 import { useState } from 'react';
 import Register from './components/Register';
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard';
+import UserDashboard from './components/UserDashboard';
 
 function App() {
 
     const getInitialPage = () => {
         const token = localStorage.getItem('token');
-        return token ? 'dashboard' : 'login';
+        if (!token) return 'login';
+        const role = localStorage.getItem('role');
+        return role === 'ADMIN' ? 'admin' : 'dashboard';
     };
 
     const [page, setPage] = useState(getInitialPage);
@@ -18,11 +19,17 @@ function App() {
         setPage(newPage);
     };
 
-    // Dashboard has no top nav — clean protected page
-    if (page === 'dashboard') {
-        return <Dashboard onNavigate={handleNavigate} />;
+    // Admin dashboard
+    if (page === 'admin') {
+        return <AdminDashboard onNavigate={handleNavigate} />;
     }
 
+    // User dashboard
+    if (page === 'dashboard') {
+        return <UserDashboard onNavigate={handleNavigate} />;
+    }
+
+    // Login / Register
     return (
         <div>
             <div style={{

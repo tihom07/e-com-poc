@@ -21,7 +21,7 @@ public class UserService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    // ✅ existing register method — don't touch this
+
     public void registerUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
@@ -34,21 +34,18 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // ✅ new login method
-    public LoginResponse loginUser(LoginRequest request) {
 
-        // Check if email exists
+    public LoginResponse loginUser(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        // Check if password matches
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
 
-        // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail());
 
-        return new LoginResponse(token, user.getEmail(), user.getName());
+
+        return new LoginResponse(token, user.getEmail(), user.getName(), user.getRole());
     }
 }

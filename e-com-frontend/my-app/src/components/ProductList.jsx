@@ -9,7 +9,11 @@ const ProductList = ({ onViewDetail }) => {
     const [showForm, setShowForm] = useState(false);
     const [editProduct, setEditProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [categories, setCategories] = useState([]);
     const [message, setMessage] = useState('');
+
+    const isAdmin = localStorage.getItem('role') === 'ADMIN';
 
     useEffect(() => {
         fetchProducts();
@@ -20,6 +24,10 @@ const ProductList = ({ onViewDetail }) => {
         try {
             const data = await getAllProducts();
             setProducts(data);
+            const uniqueCategories = [
+                ...new Set(data.map(p => p.category).filter(Boolean))
+            ];
+            setCategories(uniqueCategories);
         } catch (error) {
             setMessage('Failed to load products');
         } finally {
@@ -33,8 +41,12 @@ const ProductList = ({ onViewDetail }) => {
         if (query.trim() === '') {
             fetchProducts();
         } else {
-            const results = await searchProducts(query);
-            setProducts(results);
+            try {
+                const results = await searchProducts(query);
+                setProducts(results);
+            } catch (error) {
+                setMessage('Search failed');
+            }
         }
     };
 
@@ -61,40 +73,96 @@ const ProductList = ({ onViewDetail }) => {
         fetchProducts();
     };
 
+    // Filter logic
+    const filteredProducts = products.filter(product => {
+        const matchesSearch = product.name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        const matchesCategory = selectedCategory === '' ||
+            product.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
     return (
         <div style={styles.container}>
 
+            {/* Header */}
             <div style={styles.header}>
                 <h2 style={styles.title}>Products</h2>
-                <button
-                    onClick={() => { setEditProduct(null); setShowForm(true); }}
-                    style={styles.addBtn}
-                >
-                    + Add Product
-                </button>
+                {isAdmin && (
+                    <button
+                        onClick={() => { setEditProduct(null); setShowForm(true); }}
+                        style={styles.addBtn}
+                    >
+                        + Add Product
+                    </button>
+                )}
             </div>
 
+            {/* Message */}
             {message && (
                 <div style={styles.message}>{message}</div>
             )}
 
+            {/* Search */}
             <input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search products by name..."
                 value={searchQuery}
                 onChange={handleSearch}
                 style={styles.searchInput}
             />
 
+            {/* Category Filter */}
+            <div style={styles.filterRow}>
+                <button
+                    onClick={() => setSelectedCategory('')}
+                    style={{
+                        ...styles.filterBtn,
+                        backgroundColor: selectedCategory === '' ? '#4f46e5' : '#e2e8f0',
+                        color: selectedCategory === '' ? '#ffffff' : '#4a5568',
+                    }}
+                >
+                    All
+                </button>
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        style={{
+                            ...styles.filterBtn,
+                            backgroundColor: selectedCategory === cat ? '#4f46e5' : '#e2e8f0',
+                            color: selectedCategory === cat ? '#ffffff' : '#4a5568',
+                        }}
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+
+            {/* Results count */}
+            <p style={styles.resultsText}>
+                Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+                {selectedCategory ? ` in "${selectedCategory}"` : ''}
+                {searchQuery ? ` for "${searchQuery}"` : ''}
+            </p>
+
+            {/* Product Grid */}
             {loading ? (
                 <p style={styles.loadingText}>Loading products...</p>
-            ) : products.length === 0 ? (
-                <p style={styles.emptyText}>No products found. Add your first product!</p>
+            ) : filteredProducts.length === 0 ? (
+                <p style={styles.emptyText}>
+                    No products found. {isAdmin ? 'Add your first product!' : ''}
+                </p>
             ) : (
                 <div style={styles.grid}>
-                    {products.map(product => (
-                        <div key={product.id} style={styles.card} onClick={() => onViewDetail(product.id)}>
-
+                    {filteredProducts.map(product => (
+                        <div
+                            key={product.id}
+                            style={styles.card}
+                            onClick={() => onViewDetail(product.id)}
+                        >
+                            {/* Product Image */}
                             {product.imageUrl && (
                                 <img
                                     src={product.imageUrl}
@@ -106,36 +174,65 @@ const ProductList = ({ onViewDetail }) => {
 
                             <div style={styles.cardBody}>
                                 <div style={styles.cardHeader}>
-                                    <span style={styles.category}>{product.category}</span>
-                                    <span style={styles.price}>${product.price}</span>
+                                    <span style={styles.category}>
+                                        {product.category}
+                                    </span>
+                                    <span style={styles.price}>
+                                        ${product.price}
+                                    </span>
                                 </div>
-                                <h3 style={styles.productName}>{product.name}</h3>
-                                <p style={styles.description}>{product.description}</p>
-                                <p style={styles.stock}>Stock: {product.stock}</p>
 
-                                <div style={styles.cardFooter}>
-                                    <button
-                                        onClick={() => handleEdit(product)}
-                                        style={styles.editBtn}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(product.id)}
-                                        style={styles.deleteBtn}
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
+                                <h3 style={styles.productName}>{product.name}</h3>
+
+                                <p style={styles.description}>
+                                    {product.description}
+                                </p>
+
+                                <p style={{
+                                    ...styles.stock,
+                                    color: product.stock > 0 ? '#48bb78' : '#e53e3e'
+                                }}>
+                                    {product.stock > 0
+                                        ? `${product.stock} in stock`
+                                        : 'Out of stock'}
+                                </p>
+
+                                {/* Admin only buttons */}
+                                {isAdmin && (
+                                    <div style={styles.cardFooter}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(product);
+                                            }}
+                                            style={styles.editBtn}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(product.id);
+                                            }}
+                                            style={styles.deleteBtn}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
+            {/* Product Form Modal */}
             {showForm && (
                 <ProductForm
-                    onClose={() => { setShowForm(false); setEditProduct(null); }}
+                    onClose={() => {
+                        setShowForm(false);
+                        setEditProduct(null);
+                    }}
                     onSuccess={handleFormSuccess}
                     editProduct={editProduct}
                 />
@@ -146,7 +243,9 @@ const ProductList = ({ onViewDetail }) => {
 };
 
 const styles = {
-    container: { padding: '24px' },
+    container: {
+        padding: '24px'
+    },
     header: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -185,8 +284,27 @@ const styles = {
         border: '1.5px solid #e2e8f0',
         borderRadius: '8px',
         outline: 'none',
-        marginBottom: '20px',
+        marginBottom: '12px',
         boxSizing: 'border-box',
+    },
+    filterRow: {
+        display: 'flex',
+        gap: '8px',
+        flexWrap: 'wrap',
+        marginBottom: '12px',
+    },
+    filterBtn: {
+        padding: '6px 16px',
+        borderRadius: '20px',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: '500',
+        fontSize: '13px',
+    },
+    resultsText: {
+        fontSize: '13px',
+        color: '#718096',
+        marginBottom: '16px',
     },
     grid: {
         display: 'grid',
@@ -208,7 +326,9 @@ const styles = {
         backgroundColor: '#f7fafc',
         padding: '8px',
     },
-    cardBody: { padding: '16px' },
+    cardBody: {
+        padding: '16px'
+    },
     cardHeader: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -245,7 +365,6 @@ const styles = {
     },
     stock: {
         fontSize: '12px',
-        color: '#48bb78',
         fontWeight: '500',
         margin: '0 0 12px 0',
     },

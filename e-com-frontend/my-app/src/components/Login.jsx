@@ -46,10 +46,14 @@ const Login = ({ onNavigate }) => {
             localStorage.setItem('token', data.token);
             localStorage.setItem('name', data.name);
             localStorage.setItem('email', data.email);
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('name', data.name);
-            localStorage.setItem('email', data.email);
-            onNavigate('dashboard');
+            localStorage.setItem('role', data.role);
+
+            // Redirect based on role
+            if (data.role === 'ADMIN') {
+                onNavigate('admin');
+            } else {
+                onNavigate('dashboard');
+            }
         } catch (error) {
             if (error.response?.data) {
                 setErrors(error.response.data);

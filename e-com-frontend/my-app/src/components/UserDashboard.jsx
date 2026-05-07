@@ -3,7 +3,7 @@ import ProductList from './ProductList';
 import ProductDetail from './ProductDetail';
 import Cart from './Cart';
 
-const Dashboard = ({ onNavigate }) => {
+const UserDashboard = ({ onNavigate }) => {
 
     const name = localStorage.getItem('name');
     const [page, setPage] = useState('products');
@@ -49,8 +49,10 @@ const Dashboard = ({ onNavigate }) => {
 
     return (
         <div style={styles.wrapper}>
+
+            {/* User Navbar */}
             <div style={styles.navbar}>
-                <h2 style={styles.brand}>MyApp</h2>
+                <h2 style={styles.brand}>🛍️ MyShop</h2>
                 <div style={styles.navRight}>
                     <span style={styles.welcome}>👋 {name}</span>
                     <button
@@ -61,7 +63,7 @@ const Dashboard = ({ onNavigate }) => {
                             color: page === 'products' ? '#4f46e5' : '#4a5568',
                         }}
                     >
-                        Products
+                        🏪 Products
                     </button>
                     <button
                         onClick={() => setPage('cart')}
@@ -79,9 +81,11 @@ const Dashboard = ({ onNavigate }) => {
                 </div>
             </div>
 
+            {/* User Content */}
             <div style={styles.content}>
                 {renderPage()}
             </div>
+
         </div>
     );
 };
@@ -141,4 +145,4 @@ const styles = {
     },
 };
 
-export default Dashboard;
+export default UserDashboard;

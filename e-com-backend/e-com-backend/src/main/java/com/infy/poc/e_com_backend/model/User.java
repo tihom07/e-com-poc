@@ -20,7 +20,9 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    // Add this new field
+    @Column(nullable = false)
+    private String role = "USER";
+
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Cart cart;
@@ -38,7 +40,9 @@ public class User {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    // Add these getter and setter
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
     public Cart getCart() { return cart; }
     public void setCart(Cart cart) { this.cart = cart; }
 }
