@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getCart, updateCartItem, removeFromCart, clearCart } from '../api/cartApi';
 
-const Cart = ({ onBack, onViewDetail }) => {
+const Cart = ({ onBack, onViewDetail, onCheckout }) => {
 
     const [cart, setCart] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -17,18 +17,33 @@ const Cart = ({ onBack, onViewDetail }) => {
             const data = await getCart();
             setCart(data);
         } catch (error) {
-            setMessage('Failed to load cart');
+            setMessage('❌ Failed to load cart');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleQuantityChange = async (itemId, newQuantity) => {
+    const handleQuantityChange = async (itemId, newQuantity, stock) => {
+
+        //  Validation 1 — remove if quantity goes to 0
+        if (newQuantity < 1) {
+            handleRemove(itemId);
+            return;
+        }
+
+        //  Validation 2 — quantity cannot exceed stock
+        if (newQuantity > stock) {
+            setMessage(`❌ Only ${stock} items available in stock`);
+            return;
+        }
+
         try {
             const data = await updateCartItem(itemId, newQuantity);
             setCart(data);
+            setMessage('');
         } catch (error) {
-            setMessage('Failed to update quantity');
+            const errorMsg = error.response?.data?.error || 'Failed to update quantity';
+            setMessage(`❌ ${errorMsg}`);
         }
     };
 
@@ -36,9 +51,9 @@ const Cart = ({ onBack, onViewDetail }) => {
         try {
             const data = await removeFromCart(itemId);
             setCart(data);
-            setMessage('Item removed from cart');
+            setMessage('✅ Item removed from cart');
         } catch (error) {
-            setMessage('Failed to remove item');
+            setMessage('❌ Failed to remove item');
         }
     };
 
@@ -47,9 +62,9 @@ const Cart = ({ onBack, onViewDetail }) => {
         try {
             await clearCart();
             setCart({ ...cart, items: [] });
-            setMessage('Cart cleared');
+            setMessage('✅ Cart cleared');
         } catch (error) {
-            setMessage('Failed to clear cart');
+            setMessage('❌ Failed to clear cart');
         }
     };
 
@@ -64,6 +79,7 @@ const Cart = ({ onBack, onViewDetail }) => {
     return (
         <div style={styles.container}>
 
+            {/* Header */}
             <div style={styles.header}>
                 <button onClick={onBack} style={styles.backBtn}>
                     ← Back to Products
@@ -76,10 +92,19 @@ const Cart = ({ onBack, onViewDetail }) => {
                 )}
             </div>
 
+            {/* Message */}
             {message && (
-                <div style={styles.message}>{message}</div>
+                <div style={{
+                    ...styles.message,
+                    backgroundColor: message.includes('❌') ? '#fff5f5' : '#f0fff4',
+                    border: `1px solid ${message.includes('❌') ? '#feb2b2' : '#9ae6b4'}`,
+                    color: message.includes('❌') ? '#c53030' : '#276749',
+                }}>
+                    {message}
+                </div>
             )}
 
+            {/* Empty Cart */}
             {isEmpty ? (
                 <div style={styles.emptyCart}>
                     <p style={styles.emptyIcon}>🛒</p>
@@ -123,6 +148,16 @@ const Cart = ({ onBack, onViewDetail }) => {
                                     <p style={styles.itemPrice}>
                                         ${item.product.price} each
                                     </p>
+                                    <p style={{
+                                        fontSize: '12px',
+                                        color: item.product.stock > 0 ? '#48bb78' : '#e53e3e',
+                                        margin: 0,
+                                        fontWeight: '500'
+                                    }}>
+                                        {item.product.stock > 0
+                                            ? `${item.product.stock} in stock`
+                                            : 'Out of stock'}
+                                    </p>
                                 </div>
 
                                 {/* Quantity Controls */}
@@ -130,7 +165,9 @@ const Cart = ({ onBack, onViewDetail }) => {
                                     <button
                                         style={styles.qtyBtn}
                                         onClick={() => handleQuantityChange(
-                                            item.id, item.quantity - 1
+                                            item.id,
+                                            item.quantity - 1,
+                                            item.product.stock
                                         )}
                                     >
                                         −
@@ -139,10 +176,19 @@ const Cart = ({ onBack, onViewDetail }) => {
                                         {item.quantity}
                                     </span>
                                     <button
-                                        style={styles.qtyBtn}
+                                        style={{
+                                            ...styles.qtyBtn,
+                                            opacity: item.quantity >= item.product.stock
+                                                ? 0.4 : 1,
+                                            cursor: item.quantity >= item.product.stock
+                                                ? 'not-allowed' : 'pointer'
+                                        }}
                                         onClick={() => handleQuantityChange(
-                                            item.id, item.quantity + 1
+                                            item.id,
+                                            item.quantity + 1,
+                                            item.product.stock
                                         )}
+                                        disabled={item.quantity >= item.product.stock}
                                     >
                                         +
                                     </button>
@@ -183,6 +229,16 @@ const Cart = ({ onBack, onViewDetail }) => {
                             </span>
                         </div>
 
+                        <div style={styles.summaryRow}>
+                            <span style={styles.summaryLabel}>Shipping</span>
+                            <span style={{
+                                ...styles.summaryValue,
+                                color: '#48bb78'
+                            }}>
+                                FREE
+                            </span>
+                        </div>
+
                         <div style={styles.divider} />
 
                         <div style={styles.summaryRow}>
@@ -204,7 +260,11 @@ const Cart = ({ onBack, onViewDetail }) => {
                             </span>
                         </div>
 
-                        <button style={styles.checkoutBtn}>
+                        {/*  Proceed to Checkout button */}
+                        <button
+                            style={styles.checkoutBtn}
+                            onClick={onCheckout}
+                        >
                             Proceed to Checkout
                         </button>
 
@@ -265,9 +325,6 @@ const styles = {
         fontSize: '14px',
     },
     message: {
-        backgroundColor: '#f0fff4',
-        border: '1px solid #9ae6b4',
-        color: '#276749',
         padding: '10px 14px',
         borderRadius: '8px',
         marginBottom: '16px',

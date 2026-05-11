@@ -54,10 +54,10 @@ const ProductList = ({ onViewDetail }) => {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
         try {
             await deleteProduct(id);
-            setMessage('Product deleted successfully');
+            setMessage('✅ Product deleted successfully');
             fetchProducts();
         } catch (error) {
-            setMessage('Failed to delete product');
+            setMessage('❌ Failed to delete product');
         }
     };
 
@@ -69,7 +69,7 @@ const ProductList = ({ onViewDetail }) => {
     const handleFormSuccess = () => {
         setShowForm(false);
         setEditProduct(null);
-        setMessage(editProduct ? 'Product updated!' : 'Product added!');
+        setMessage(editProduct ? '✅ Product updated!' : '✅ Product added!');
         fetchProducts();
     };
 
@@ -101,7 +101,14 @@ const ProductList = ({ onViewDetail }) => {
 
             {/* Message */}
             {message && (
-                <div style={styles.message}>{message}</div>
+                <div style={{
+                    ...styles.message,
+                    backgroundColor: message.includes('❌') ? '#fff5f5' : '#f0fff4',
+                    border: `1px solid ${message.includes('❌') ? '#feb2b2' : '#9ae6b4'}`,
+                    color: message.includes('❌') ? '#c53030' : '#276749',
+                }}>
+                    {message}
+                </div>
             )}
 
             {/* Search */}
@@ -159,9 +166,25 @@ const ProductList = ({ onViewDetail }) => {
                     {filteredProducts.map(product => (
                         <div
                             key={product.id}
-                            style={styles.card}
-                            onClick={() => onViewDetail(product.id)}
+                            style={{
+                                ...styles.card,
+                                opacity: product.stock === 0 ? 0.75 : 1,
+                                cursor: product.stock === 0 && !isAdmin
+                                    ? 'not-allowed' : 'pointer',
+                            }}
+                            onClick={() => {
+                                if (product.stock > 0 || isAdmin) {
+                                    onViewDetail(product.id);
+                                }
+                            }}
                         >
+                            {/* Out of stock badge */}
+                            {product.stock === 0 && (
+                                <div style={styles.outOfStockBadge}>
+                                    OUT OF STOCK
+                                </div>
+                            )}
+
                             {/* Product Image */}
                             {product.imageUrl && (
                                 <img
@@ -182,7 +205,9 @@ const ProductList = ({ onViewDetail }) => {
                                     </span>
                                 </div>
 
-                                <h3 style={styles.productName}>{product.name}</h3>
+                                <h3 style={styles.productName}>
+                                    {product.name}
+                                </h3>
 
                                 <p style={styles.description}>
                                     {product.description}
@@ -190,11 +215,17 @@ const ProductList = ({ onViewDetail }) => {
 
                                 <p style={{
                                     ...styles.stock,
-                                    color: product.stock > 0 ? '#48bb78' : '#e53e3e'
+                                    color: product.stock === 0
+                                        ? '#e53e3e'
+                                        : product.stock <= 5
+                                            ? '#ed8936'
+                                            : '#48bb78'
                                 }}>
-                                    {product.stock > 0
-                                        ? `${product.stock} in stock`
-                                        : 'Out of stock'}
+                                    {product.stock === 0
+                                        ? 'Out of stock'
+                                        : product.stock <= 5
+                                            ? `Only ${product.stock} left!`
+                                            : `${product.stock} in stock`}
                                 </p>
 
                                 {/* Admin only buttons */}
@@ -269,9 +300,6 @@ const styles = {
         fontSize: '14px',
     },
     message: {
-        backgroundColor: '#f0fff4',
-        border: '1px solid #9ae6b4',
-        color: '#276749',
         padding: '10px 14px',
         borderRadius: '8px',
         marginBottom: '16px',
@@ -316,8 +344,21 @@ const styles = {
         borderRadius: '12px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
         overflow: 'hidden',
-        cursor: 'pointer',
         transition: 'transform 0.2s, box-shadow 0.2s',
+        position: 'relative',
+    },
+    outOfStockBadge: {
+        position: 'absolute',
+        top: '12px',
+        left: '12px',
+        backgroundColor: '#e53e3e',
+        color: '#ffffff',
+        padding: '4px 10px',
+        borderRadius: '20px',
+        fontSize: '11px',
+        fontWeight: '700',
+        letterSpacing: '0.5px',
+        zIndex: 1,
     },
     image: {
         width: '100%',

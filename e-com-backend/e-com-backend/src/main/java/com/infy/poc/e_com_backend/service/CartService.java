@@ -42,20 +42,37 @@ public class CartService {
     public Cart addToCart(String email, CartItemRequest request) {
         Cart cart = getOrCreateCart(email);
 
+        //  Validation 1 — quantity must be at least 1
+        if (request.getQuantity() < 1) {
+            throw new RuntimeException("Quantity must be at least 1");
+        }
+
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if (product.getStock() < request.getQuantity()) {
-            throw new RuntimeException("Not enough stock available");
+        //  Validation 2 — cannot add out of stock product
+        if (product.getStock() <= 0) {
+            throw new RuntimeException("Product is out of stock");
         }
 
-        // If product already in cart — increase quantity
+        // Check existing item in cart
         CartItem existingItem = cartItemRepository
                 .findByCartAndProduct(cart, product)
                 .orElse(null);
 
+        int currentQuantity = existingItem != null ? existingItem.getQuantity() : 0;
+        int newTotalQuantity = currentQuantity + request.getQuantity();
+
+        //  Validation 3 — quantity cannot exceed stock
+        if (newTotalQuantity > product.getStock()) {
+            throw new RuntimeException(
+                    "Cannot add " + request.getQuantity() + " items. " +
+                            "Only " + (product.getStock() - currentQuantity) + " more available in stock"
+            );
+        }
+
         if (existingItem != null) {
-            existingItem.setQuantity(existingItem.getQuantity() + request.getQuantity());
+            existingItem.setQuantity(newTotalQuantity);
             cartItemRepository.save(existingItem);
         } else {
             CartItem newItem = new CartItem();
@@ -77,6 +94,13 @@ public class CartService {
 
         if (!item.getCart().getId().equals(cart.getId())) {
             throw new RuntimeException("Unauthorized");
+        }
+
+        //  Validation — quantity cannot exceed stock
+        if (quantity > item.getProduct().getStock()) {
+            throw new RuntimeException(
+                    "Only " + item.getProduct().getStock() + " items available in stock"
+            );
         }
 
         if (quantity <= 0) {
