@@ -49,4 +49,30 @@ public class OrderController {
             return ResponseEntity.status(400).body(error);
         }
     }
+
+    // GET single order
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOrderById(@PathVariable Long id) {
+        try {
+            Order order = orderService.getOrderById(id, getEmail());
+            return ResponseEntity.ok(order);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(400).body(error);
+        }
+    }
+
+    // PUT cancel order
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long id) {
+        try {
+            Order order = orderService.cancelOrder(id, getEmail());
+            return ResponseEntity.ok(order);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(400).body(error);
+        }
+    }
 }

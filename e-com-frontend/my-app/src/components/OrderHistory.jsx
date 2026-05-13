@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getOrders } from '../api/orderApi';
+import axiosInstance from '../api/axiosInstance';
 
 const OrderHistory = ({ onBack }) => {
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
 
     useEffect(() => {
         fetchOrders();
@@ -23,16 +25,49 @@ const OrderHistory = ({ onBack }) => {
         }
     };
 
+    const handleCancelOrder = async (orderId) => {
+        if (!window.confirm('Are you sure you want to cancel this order?')) return;
+        try {
+            await axiosInstance.put(`/orders/${orderId}/cancel`);
+            setMessage('✅ Order cancelled successfully. Stock has been restored.');
+            fetchOrders();
+        } catch (error) {
+            setMessage(`❌ ${error.response?.data?.error || 'Failed to cancel order'}`);
+        }
+    };
+
     const getStatusStyle = (status) => {
         switch (status) {
             case 'PENDING':
-                return { backgroundColor: '#fefcbf', color: '#744210' };
+                return {
+                    backgroundColor: '#fefcbf',
+                    color: '#744210',
+                    border: '1px solid #f6e05e'
+                };
             case 'CONFIRMED':
-                return { backgroundColor: '#c6f6d5', color: '#22543d' };
+                return {
+                    backgroundColor: '#c6f6d5',
+                    color: '#22543d',
+                    border: '1px solid #9ae6b4'
+                };
             case 'CANCELLED':
-                return { backgroundColor: '#fed7d7', color: '#742a2a' };
+                return {
+                    backgroundColor: '#fed7d7',
+                    color: '#742a2a',
+                    border: '1px solid #feb2b2'
+                };
+            case 'DELIVERED':
+                return {
+                    backgroundColor: '#bee3f8',
+                    color: '#2a4365',
+                    border: '1px solid #90cdf4'
+                };
             default:
-                return { backgroundColor: '#e2e8f0', color: '#4a5568' };
+                return {
+                    backgroundColor: '#e2e8f0',
+                    color: '#4a5568',
+                    border: '1px solid #cbd5e0'
+                };
         }
     };
 
@@ -45,16 +80,31 @@ const OrderHistory = ({ onBack }) => {
     return (
         <div style={styles.container}>
 
+            {/* Back button */}
             <button onClick={onBack} style={styles.backBtn}>
                 ← Back to Products
             </button>
 
             <h2 style={styles.title}>📦 My Orders</h2>
 
+            {/* Error */}
             {error && (
                 <div style={styles.errorBox}>{error}</div>
             )}
 
+            {/* Message */}
+            {message && (
+                <div style={{
+                    ...styles.messageBox,
+                    backgroundColor: message.includes('❌') ? '#fff5f5' : '#f0fff4',
+                    border: `1px solid ${message.includes('❌') ? '#feb2b2' : '#9ae6b4'}`,
+                    color: message.includes('❌') ? '#c53030' : '#276749',
+                }}>
+                    {message}
+                </div>
+            )}
+
+            {/* Empty */}
             {orders.length === 0 ? (
                 <div style={styles.emptyBox}>
                     <p style={styles.emptyIcon}>📦</p>
@@ -71,9 +121,12 @@ const OrderHistory = ({ onBack }) => {
                             {/* Order Header */}
                             <div style={styles.orderHeader}>
                                 <div>
-                                    <p style={styles.orderId}>Order #{order.id}</p>
+                                    <p style={styles.orderId}>
+                                        Order #{order.id}
+                                    </p>
                                     <p style={styles.orderDate}>
-                                        {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                        {new Date(order.createdAt).toLocaleDateString(
+                                            'en-US', {
                                             year: 'numeric',
                                             month: 'long',
                                             day: 'numeric',
@@ -81,17 +134,35 @@ const OrderHistory = ({ onBack }) => {
                                             minute: '2-digit'
                                         })}
                                     </p>
+                                    <p style={styles.itemCount}>
+                                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                                    </p>
                                 </div>
+
                                 <div style={styles.orderHeaderRight}>
+                                    {/* Status Badge */}
                                     <span style={{
                                         ...styles.statusBadge,
                                         ...getStatusStyle(order.status)
                                     }}>
                                         {order.status}
                                     </span>
+
+                                    {/* Total */}
                                     <p style={styles.orderTotal}>
                                         ${order.totalPrice?.toFixed(2)}
                                     </p>
+
+                                    {/* Cancel button */}
+                                    {(order.status === 'PENDING' ||
+                                      order.status === 'CONFIRMED') && (
+                                        <button
+                                            onClick={() => handleCancelOrder(order.id)}
+                                            style={styles.cancelBtn}
+                                        >
+                                            Cancel Order
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -99,6 +170,8 @@ const OrderHistory = ({ onBack }) => {
                             <div style={styles.orderItems}>
                                 {order.items.map(item => (
                                     <div key={item.id} style={styles.orderItem}>
+
+                                        {/* Image */}
                                         <div style={styles.itemImageBox}>
                                             {item.product.imageUrl ? (
                                                 <img
@@ -110,19 +183,46 @@ const OrderHistory = ({ onBack }) => {
                                                 <div style={styles.noImage}>🖼️</div>
                                             )}
                                         </div>
+
+                                        {/* Info */}
                                         <div style={styles.itemInfo}>
                                             <p style={styles.itemName}>
                                                 {item.product.name}
                                             </p>
+                                            <p style={styles.itemCategory}>
+                                                {item.product.category}
+                                            </p>
                                             <p style={styles.itemQty}>
-                                                Qty: {item.quantity} × ${item.price}
+                                                Qty: {item.quantity} × ${item.price?.toFixed(2)}
                                             </p>
                                         </div>
-                                        <p style={styles.itemTotal}>
-                                            ${(item.price * item.quantity).toFixed(2)}
-                                        </p>
+
+                                        {/* Item Total */}
+                                        <div style={styles.itemTotalBox}>
+                                            <p style={styles.itemTotal}>
+                                                ${(item.price * item.quantity).toFixed(2)}
+                                            </p>
+                                        </div>
+
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* Order Footer */}
+                            <div style={styles.orderFooter}>
+                                <div style={styles.footerLeft}>
+                                    {order.status === 'CANCELLED' && (
+                                        <p style={styles.cancelledNote}>
+                                            ℹ️ Stock has been restored for this order
+                                        </p>
+                                    )}
+                                </div>
+                                <div style={styles.footerRight}>
+                                    <span style={styles.totalLabel}>Order Total:</span>
+                                    <span style={styles.totalValue}>
+                                        ${order.totalPrice?.toFixed(2)}
+                                    </span>
+                                </div>
                             </div>
 
                         </div>
@@ -172,6 +272,12 @@ const styles = {
         marginBottom: '16px',
         fontSize: '14px',
     },
+    messageBox: {
+        padding: '12px 16px',
+        borderRadius: '8px',
+        marginBottom: '16px',
+        fontSize: '14px',
+    },
     emptyBox: {
         textAlign: 'center',
         padding: '80px 24px',
@@ -215,7 +321,7 @@ const styles = {
         borderBottom: '1px solid #e2e8f0',
     },
     orderId: {
-        fontSize: '15px',
+        fontSize: '16px',
         fontWeight: '700',
         color: '#1a202c',
         margin: '0 0 4px',
@@ -223,26 +329,41 @@ const styles = {
     orderDate: {
         fontSize: '12px',
         color: '#718096',
+        margin: '0 0 4px',
+    },
+    itemCount: {
+        fontSize: '12px',
+        color: '#a0aec0',
         margin: 0,
     },
     orderHeaderRight: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
-        gap: '6px',
+        gap: '8px',
     },
     statusBadge: {
-        padding: '4px 10px',
+        padding: '4px 12px',
         borderRadius: '20px',
         fontSize: '11px',
         fontWeight: '700',
         letterSpacing: '0.5px',
     },
     orderTotal: {
-        fontSize: '18px',
+        fontSize: '20px',
         fontWeight: '700',
         color: '#4f46e5',
         margin: 0,
+    },
+    cancelBtn: {
+        backgroundColor: '#fff5f5',
+        border: '1px solid #feb2b2',
+        color: '#c53030',
+        padding: '6px 12px',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: '500',
+        fontSize: '12px',
     },
     orderItems: {
         padding: '16px 20px',
@@ -252,14 +373,16 @@ const styles = {
     },
     orderItem: {
         display: 'grid',
-        gridTemplateColumns: '48px 1fr auto',
+        gridTemplateColumns: '56px 1fr auto',
         gap: '12px',
         alignItems: 'center',
+        padding: '8px 0',
+        borderBottom: '1px solid #f7fafc',
     },
     itemImageBox: {
-        width: '48px',
-        height: '48px',
-        borderRadius: '6px',
+        width: '56px',
+        height: '56px',
+        borderRadius: '8px',
         backgroundColor: '#f7fafc',
         display: 'flex',
         alignItems: 'center',
@@ -272,7 +395,7 @@ const styles = {
         objectFit: 'contain',
     },
     noImage: {
-        fontSize: '16px',
+        fontSize: '20px',
     },
     itemInfo: {
         display: 'flex',
@@ -285,16 +408,55 @@ const styles = {
         color: '#1a202c',
         margin: 0,
     },
+    itemCategory: {
+        fontSize: '11px',
+        color: '#a0aec0',
+        margin: 0,
+    },
     itemQty: {
         fontSize: '12px',
         color: '#718096',
         margin: 0,
+    },
+    itemTotalBox: {
+        textAlign: 'right',
     },
     itemTotal: {
         fontSize: '14px',
         fontWeight: '700',
         color: '#4f46e5',
         margin: 0,
+    },
+    orderFooter: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 20px',
+        backgroundColor: '#f7fafc',
+        borderTop: '1px solid #e2e8f0',
+    },
+    footerLeft: {
+        flex: 1,
+    },
+    cancelledNote: {
+        fontSize: '12px',
+        color: '#718096',
+        margin: 0,
+    },
+    footerRight: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    totalLabel: {
+        fontSize: '14px',
+        color: '#718096',
+        fontWeight: '500',
+    },
+    totalValue: {
+        fontSize: '18px',
+        fontWeight: '700',
+        color: '#4f46e5',
     },
     loadingText: {
         color: '#718096',

@@ -28,12 +28,12 @@ public class Order {
     private String status = "PENDING";
 
     @Column(nullable = false)
-    private Double totalPrice;
+    private Double totalPrice = 0.0;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // Calculate total price from items
+    //  Calculate total from items
     public void calculateTotalPrice() {
         this.totalPrice = items.stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
