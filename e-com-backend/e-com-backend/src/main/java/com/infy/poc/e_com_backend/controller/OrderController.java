@@ -1,7 +1,9 @@
 package com.infy.poc.e_com_backend.controller;
 
+import com.infy.poc.e_com_backend.dto.CheckoutRequest;
 import com.infy.poc.e_com_backend.model.Order;
 import com.infy.poc.e_com_backend.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,9 +28,9 @@ public class OrderController {
 
     // POST checkout
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout() {
+    public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest request) {
         try {
-            Order order = orderService.checkout(getEmail());
+            Order order = orderService.checkout(getEmail(), request);
             return ResponseEntity.status(201).body(order);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();

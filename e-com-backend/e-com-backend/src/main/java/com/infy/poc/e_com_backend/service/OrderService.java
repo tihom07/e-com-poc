@@ -1,5 +1,6 @@
 package com.infy.poc.e_com_backend.service;
 
+import com.infy.poc.e_com_backend.dto.CheckoutRequest;
 import com.infy.poc.e_com_backend.model.*;
 import com.infy.poc.e_com_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,9 @@ public class OrderService {
     @Autowired
     private OrderItemRepository orderItemRepository;
 
-    //  Checkout with full transaction support
+    //  Checkout with address + payment + transaction
     @Transactional(rollbackFor = Exception.class)
-    public Order checkout(String email) {
+    public Order checkout(String email, CheckoutRequest request) {
 
         // Step 1 — Get user
         User user = userRepository.findByEmail(email)
@@ -42,19 +43,30 @@ public class OrderService {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        // Step 3 — Validate cart is not empty
+        // Step 3 — Validate cart not empty
         if (cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new RuntimeException("Cannot checkout with empty cart");
         }
 
-        // Step 4 — Create order
+        // Step 4 — Create order with address and payment
         Order order = new Order();
         order.setUser(user);
         order.setStatus("PENDING");
         order.setCreatedAt(LocalDateTime.now());
         order.setTotalPrice(0.0);
 
-        // Step 5 — Save order first to get ID
+        //  Save address
+        order.setFullName(request.getFullName());
+        order.setPhone(request.getPhone());
+        order.setAddressLine(request.getAddressLine());
+        order.setCity(request.getCity());
+        order.setState(request.getState());
+        order.setPincode(request.getPincode());
+
+        //  Save payment method
+        order.setPaymentMethod(request.getPaymentMethod());
+
+        // Step 5 — Save order to get ID
         Order savedOrder = orderRepository.save(order);
 
         double totalPrice = 0.0;
@@ -62,7 +74,7 @@ public class OrderService {
         // Step 6 — Process each cart item
         for (CartItem cartItem : cart.getItems()) {
 
-            //  Fix — use cartProduct first then final product
+            // Get product from cart
             Product cartProduct = cartItem.getProduct();
 
             //  Validate product still exists
@@ -88,7 +100,7 @@ public class OrderService {
                 );
             }
 
-            //  Create order item — save price at time of order
+            //  Create order item with price locked at checkout
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(savedOrder);
             orderItem.setProduct(product);
@@ -98,18 +110,18 @@ public class OrderService {
             // Save order item
             orderItemRepository.save(orderItem);
 
-            // Add to order items list
+            // Add to order
             savedOrder.getItems().add(orderItem);
 
             //  Reduce stock
             product.setStock(product.getStock() - cartItem.getQuantity());
             productRepository.save(product);
 
-            // Calculate total
+            // Add to total
             totalPrice += product.getPrice() * cartItem.getQuantity();
         }
 
-        // Step 7 — Update total price and status
+        // Step 7 — Update total price and confirm order
         savedOrder.setTotalPrice(totalPrice);
         savedOrder.setStatus("CONFIRMED");
         orderRepository.save(savedOrder);
@@ -146,7 +158,7 @@ public class OrderService {
         return order;
     }
 
-    //  Cancel order with stock restore
+    //  Cancel order — restore stock
     @Transactional(rollbackFor = Exception.class)
     public Order cancelOrder(Long orderId, String email) {
         User user = userRepository.findByEmail(email)
@@ -160,7 +172,7 @@ public class OrderService {
             throw new RuntimeException("Unauthorized access to order");
         }
 
-        // Can only cancel PENDING or CONFIRMED orders
+        // Can only cancel PENDING or CONFIRMED
         if (order.getStatus().equals("CANCELLED")) {
             throw new RuntimeException("Order is already cancelled");
         }
@@ -169,13 +181,14 @@ public class OrderService {
             throw new RuntimeException("Cannot cancel a delivered order");
         }
 
-        //  Restore stock on cancel
+        //  Restore stock for each item
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
             product.setStock(product.getStock() + item.getQuantity());
             productRepository.save(product);
         }
 
+        // Update status
         order.setStatus("CANCELLED");
         return orderRepository.save(order);
     }
