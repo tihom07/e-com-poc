@@ -4,6 +4,7 @@ import ProductDetail from './ProductDetail';
 import Cart from './Cart';
 import Checkout from './Checkout';
 import OrderHistory from './OrderHistory';
+import Profile from './Profile';
 
 const UserDashboard = ({ onNavigate }) => {
 
@@ -27,6 +28,7 @@ const UserDashboard = ({ onNavigate }) => {
 
     const renderPage = () => {
         switch (page) {
+
             case 'cart':
                 return (
                     <Cart
@@ -38,6 +40,7 @@ const UserDashboard = ({ onNavigate }) => {
                         onCheckout={() => setPage('checkout')}
                     />
                 );
+
             case 'checkout':
                 return (
                     <Checkout
@@ -45,17 +48,28 @@ const UserDashboard = ({ onNavigate }) => {
                         onOrderSuccess={handleOrderSuccess}
                     />
                 );
+
             case 'orderSuccess':
                 return (
                     <div style={styles.successBox}>
                         <p style={styles.successIcon}>🎉</p>
                         <h2 style={styles.successTitle}>Order Placed!</h2>
                         <p style={styles.successText}>
-                            Order #{placedOrder?.id} has been placed successfully
+                            Order #{placedOrder?.id} placed successfully
                         </p>
                         <p style={styles.successAmount}>
                             Total: ${placedOrder?.totalPrice?.toFixed(2)}
                         </p>
+                        <div style={styles.successDetails}>
+                            <p style={styles.successDetail}>
+                                📍 {placedOrder?.addressLine}, {placedOrder?.city}
+                            </p>
+                            <p style={styles.successDetail}>
+                                💳 {placedOrder?.paymentMethod === 'COD'
+                                    ? 'Cash on Delivery'
+                                    : placedOrder?.paymentMethod}
+                            </p>
+                        </div>
                         <div style={styles.successBtns}>
                             <button
                                 onClick={() => setPage('orders')}
@@ -72,12 +86,21 @@ const UserDashboard = ({ onNavigate }) => {
                         </div>
                     </div>
                 );
+
             case 'orders':
                 return (
                     <OrderHistory
                         onBack={() => setPage('products')}
                     />
                 );
+
+            case 'profile':
+                return (
+                    <Profile
+                        onBack={() => setPage('products')}
+                    />
+                );
+
             case 'detail':
                 return (
                     <ProductDetail
@@ -85,6 +108,7 @@ const UserDashboard = ({ onNavigate }) => {
                         onBack={() => setPage('products')}
                     />
                 );
+
             default:
                 return (
                     <ProductList
@@ -100,10 +124,12 @@ const UserDashboard = ({ onNavigate }) => {
     return (
         <div style={styles.wrapper}>
 
+            {/* Navbar */}
             <div style={styles.navbar}>
                 <h2 style={styles.brand}>🛍️ MyShop</h2>
                 <div style={styles.navRight}>
                     <span style={styles.welcome}>👋 {name}</span>
+
                     <button
                         onClick={() => setPage('products')}
                         style={{
@@ -116,6 +142,7 @@ const UserDashboard = ({ onNavigate }) => {
                     >
                         🏪 Products
                     </button>
+
                     <button
                         onClick={() => setPage('cart')}
                         style={{
@@ -128,22 +155,41 @@ const UserDashboard = ({ onNavigate }) => {
                     >
                         🛒 Cart
                     </button>
+
                     <button
                         onClick={() => setPage('orders')}
                         style={{
                             ...styles.navBtn,
-                            backgroundColor: page === 'orders' ? '#ede9fe' : 'transparent',
+                            backgroundColor: page === 'orders'
+                                ? '#ede9fe' : 'transparent',
                             color: page === 'orders' ? '#4f46e5' : '#4a5568',
                         }}
                     >
                         📦 Orders
                     </button>
-                    <button onClick={handleLogout} style={styles.logoutBtn}>
+
+                    <button
+                        onClick={() => setPage('profile')}
+                        style={{
+                            ...styles.navBtn,
+                            backgroundColor: page === 'profile'
+                                ? '#ede9fe' : 'transparent',
+                            color: page === 'profile' ? '#4f46e5' : '#4a5568',
+                        }}
+                    >
+                        👤 Profile
+                    </button>
+
+                    <button
+                        onClick={handleLogout}
+                        style={styles.logoutBtn}
+                    >
                         Logout
                     </button>
                 </div>
             </div>
 
+            {/* Content */}
             <div style={styles.content}>
                 {renderPage()}
             </div>
@@ -165,6 +211,8 @@ const styles = {
         alignItems: 'center',
         borderBottom: '1px solid #e2e8f0',
         boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+        flexWrap: 'wrap',
+        gap: '12px',
     },
     brand: {
         fontSize: '20px',
@@ -175,20 +223,22 @@ const styles = {
     navRight: {
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
+        gap: '8px',
+        flexWrap: 'wrap',
     },
     welcome: {
         fontSize: '14px',
         color: '#4a5568',
         fontWeight: '500',
+        marginRight: '8px',
     },
     navBtn: {
         border: 'none',
-        padding: '8px 16px',
+        padding: '8px 14px',
         borderRadius: '8px',
         cursor: 'pointer',
         fontWeight: '500',
-        fontSize: '14px',
+        fontSize: '13px',
     },
     logoutBtn: {
         backgroundColor: '#fed7d7',
@@ -198,7 +248,7 @@ const styles = {
         borderRadius: '8px',
         cursor: 'pointer',
         fontWeight: '500',
-        fontSize: '14px',
+        fontSize: '13px',
     },
     content: {
         maxWidth: '1200px',
@@ -207,9 +257,13 @@ const styles = {
     },
     successBox: {
         textAlign: 'center',
-        padding: '80px 24px',
+        padding: '60px 24px',
         maxWidth: '500px',
         margin: '0 auto',
+        backgroundColor: '#ffffff',
+        borderRadius: '16px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        marginTop: '40px',
     },
     successIcon: {
         fontSize: '72px',
@@ -230,7 +284,21 @@ const styles = {
         fontSize: '24px',
         fontWeight: '700',
         color: '#4f46e5',
-        margin: '0 0 32px',
+        margin: '0 0 20px',
+    },
+    successDetails: {
+        backgroundColor: '#f7fafc',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        marginBottom: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+    },
+    successDetail: {
+        fontSize: '13px',
+        color: '#4a5568',
+        margin: 0,
     },
     successBtns: {
         display: 'flex',
