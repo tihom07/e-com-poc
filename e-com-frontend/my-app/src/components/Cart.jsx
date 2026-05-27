@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCart, updateCartItem, removeFromCart, clearCart } from '../api/cartApi';
+import { formatINR } from '../utils/currency';
 
 const Cart = ({ onBack, onViewDetail, onCheckout }) => {
 
@@ -146,7 +147,7 @@ const Cart = ({ onBack, onViewDetail, onCheckout }) => {
                                         {item.product.category}
                                     </p>
                                     <p style={styles.itemPrice}>
-                                        ${item.product.price} each
+                                        {formatINR(item.product.price)} each
                                     </p>
                                     <p style={{
                                         fontSize: '12px',
@@ -197,7 +198,7 @@ const Cart = ({ onBack, onViewDetail, onCheckout }) => {
                                 {/* Item Total */}
                                 <div style={styles.itemTotal}>
                                     <p style={styles.totalPrice}>
-                                        ${(item.product.price * item.quantity).toFixed(2)}
+                                        {formatINR(item.product.price * item.quantity)}
                                     </p>
                                     <button
                                         style={styles.removeBtn}
@@ -225,7 +226,7 @@ const Cart = ({ onBack, onViewDetail, onCheckout }) => {
                         <div style={styles.summaryRow}>
                             <span style={styles.summaryLabel}>Subtotal</span>
                             <span style={styles.summaryValue}>
-                                ${cart.totalPrice?.toFixed(2)}
+                                {formatINR(cart.totalPrice)}
                             </span>
                         </div>
 
@@ -256,7 +257,7 @@ const Cart = ({ onBack, onViewDetail, onCheckout }) => {
                                 fontSize: '20px',
                                 color: '#4f46e5'
                             }}>
-                                ${cart.totalPrice?.toFixed(2)}
+                                {formatINR(cart.totalPrice)}
                             </span>
                         </div>
 

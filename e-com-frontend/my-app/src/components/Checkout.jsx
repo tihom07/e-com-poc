@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { checkout } from '../api/orderApi';
 import { getCart } from '../api/cartApi';
+import { formatINR } from '../utils/currency';
 
 const Checkout = ({ onBack, onOrderSuccess }) => {
 
@@ -480,7 +481,7 @@ const Checkout = ({ onBack, onOrderSuccess }) => {
                                             x{item.quantity}
                                         </span>
                                         <span style={styles.reviewItemPrice}>
-                                            ${(item.product.price * item.quantity).toFixed(2)}
+                                            {formatINR(item.product.price * item.quantity)}
                                         </span>
                                     </div>
                                 ))}
@@ -537,7 +538,7 @@ const Checkout = ({ onBack, onOrderSuccess }) => {
                                 </div>
                             </div>
                             <p style={styles.summaryItemPrice}>
-                                ${(item.product.price * item.quantity).toFixed(2)}
+                                {formatINR(item.product.price * item.quantity)}
                             </p>
                         </div>
                     ))}
@@ -547,7 +548,7 @@ const Checkout = ({ onBack, onOrderSuccess }) => {
                     <div style={styles.summaryRow}>
                         <span style={styles.summaryLabel}>Subtotal</span>
                         <span style={styles.summaryValue}>
-                            ${cart.totalPrice?.toFixed(2)}
+                            {formatINR(cart.totalPrice)}
                         </span>
                     </div>
                     <div style={styles.summaryRow}>
@@ -574,7 +575,7 @@ const Checkout = ({ onBack, onOrderSuccess }) => {
                             fontWeight: '700',
                             color: '#4f46e5'
                         }}>
-                            ${cart.totalPrice?.toFixed(2)}
+                            {formatINR(cart.totalPrice)}
                         </span>
                     </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAllProducts, deleteProduct, searchProducts } from '../api/productApi';
 import ProductForm from './ProductForm';
+import { formatINR } from '../utils/currency';
 
 const ProductList = ({ onViewDetail }) => {
 
@@ -201,7 +202,7 @@ const ProductList = ({ onViewDetail }) => {
                                         {product.category}
                                     </span>
                                     <span style={styles.price}>
-                                        ${product.price}
+                                        {formatINR(product.price)}
                                     </span>
                                 </div>
 

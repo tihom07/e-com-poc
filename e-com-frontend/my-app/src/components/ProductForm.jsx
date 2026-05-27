@@ -150,7 +150,7 @@ const ProductForm = ({ onClose, onSuccess, editProduct }) => {
 
                     <div style={styles.row}>
                         <div style={styles.field}>
-                            <label style={styles.label}>Price ($)</label>
+                            <label style={styles.label}>Price (Rs.)</label>
                             <input
                                 name="price"
                                 type="number"

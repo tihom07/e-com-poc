@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getOrders } from '../api/orderApi';
 import axiosInstance from '../api/axiosInstance';
+import { formatINR } from '../utils/currency';
 
 const OrderHistory = ({ onBack }) => {
 
@@ -150,7 +151,7 @@ const OrderHistory = ({ onBack }) => {
 
                                     {/* Total */}
                                     <p style={styles.orderTotal}>
-                                        ${order.totalPrice?.toFixed(2)}
+                                        {formatINR(order.totalPrice)}
                                     </p>
 
                                     {/* Cancel button */}
@@ -193,14 +194,14 @@ const OrderHistory = ({ onBack }) => {
                                                 {item.product.category}
                                             </p>
                                             <p style={styles.itemQty}>
-                                                Qty: {item.quantity} × ${item.price?.toFixed(2)}
+                                                Qty: {item.quantity} x {formatINR(item.price)}
                                             </p>
                                         </div>
 
                                         {/* Item Total */}
                                         <div style={styles.itemTotalBox}>
                                             <p style={styles.itemTotal}>
-                                                ${(item.price * item.quantity).toFixed(2)}
+                                                {formatINR(item.price * item.quantity)}
                                             </p>
                                         </div>
 
@@ -220,7 +221,7 @@ const OrderHistory = ({ onBack }) => {
                                 <div style={styles.footerRight}>
                                     <span style={styles.totalLabel}>Order Total:</span>
                                     <span style={styles.totalValue}>
-                                        ${order.totalPrice?.toFixed(2)}
+                                        {formatINR(order.totalPrice)}
                                     </span>
                                 </div>
                             </div>
