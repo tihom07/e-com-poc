@@ -187,13 +187,20 @@ const ProductList = ({ onViewDetail }) => {
                             )}
 
                             {/* Product Image */}
-                            {product.imageUrl && (
+                            {product.imageUrl ? (
                                 <img
                                     src={product.imageUrl}
                                     alt={product.name}
                                     style={styles.image}
                                     onError={(e) => e.target.style.display = 'none'}
                                 />
+                            ) : (
+                                <div style={styles.imageFallback}>
+                                    <div style={styles.fallbackShoe}>Shoe</div>
+                                    <span style={styles.fallbackCategory}>
+                                        {product.category || 'Footwear'}
+                                    </span>
+                                </div>
                             )}
 
                             <div style={styles.cardBody}>
@@ -367,6 +374,39 @@ const styles = {
         objectFit: 'contain',
         backgroundColor: '#f7fafc',
         padding: '8px',
+    },
+    imageFallback: {
+        width: '100%',
+        height: '200px',
+        backgroundColor: '#f7fafc',
+        borderBottom: '1px solid #e2e8f0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
+        padding: '16px',
+    },
+    fallbackShoe: {
+        width: '112px',
+        height: '54px',
+        borderRadius: '40px 54px 18px 18px',
+        backgroundColor: '#111111',
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '13px',
+        fontWeight: '800',
+        letterSpacing: '1px',
+        boxShadow: '0 14px 24px rgba(17,17,17,0.16)',
+    },
+    fallbackCategory: {
+        fontSize: '12px',
+        color: '#718096',
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: '1px',
     },
     cardBody: {
         padding: '16px'

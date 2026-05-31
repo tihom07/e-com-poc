@@ -15,14 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 public class AuthController {
 
     @Autowired
     private UserService userService;
 
-    // ✅ existing register endpoint — don't touch this
-    @PostMapping("/register")
+    @PostMapping({"/auth/register", "/register"})
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
             userService.registerUser(request);
@@ -36,8 +35,7 @@ public class AuthController {
         }
     }
 
-    // ✅ new login endpoint
-    @PostMapping("/login")
+    @PostMapping({"/auth/login", "/login"})
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             LoginResponse response = userService.loginUser(request);
@@ -49,7 +47,6 @@ public class AuthController {
         }
     }
 
-    // ✅ existing validation handler — don't touch this
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

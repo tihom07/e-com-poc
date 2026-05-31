@@ -53,7 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     .orElse(false);
 
             if (isValid) {
-                // ✅ Get user role and pass it as authority
+                //  Get user role and pass it as authority
                 String role = userRepository.findByEmail(email)
                         .map(u -> "ROLE_" + u.getRole())
                         .orElse("ROLE_USER");
