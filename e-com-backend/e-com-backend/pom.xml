@@ -28,8 +28,30 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+        <base.url>http://localhost:5173</base.url>
+        <headless>false</headless>
+        <chrome.driver.path></chrome.driver.path>
+        <explicit.wait.seconds>15</explicit.wait.seconds>
 	</properties>
 	<dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.44.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.12.0</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -140,6 +162,22 @@
 					</execution>
 				</executions>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                    <systemPropertyVariables>
+                        <base.url>${base.url}</base.url>
+                        <headless>${headless}</headless>
+                        <chrome.driver.path>${chrome.driver.path}</chrome.driver.path>
+                        <explicit.wait.seconds>${explicit.wait.seconds}</explicit.wait.seconds>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 

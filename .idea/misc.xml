@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/e-com-backend/e-com-backend/pom.xml" />
+        <option value="$PROJECT_DIR$/e-com-testing/pom.xml" />
       </list>
     </option>
   </component>
