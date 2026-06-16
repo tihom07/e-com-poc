@@ -30,4 +30,9 @@ public class DashboardPage extends BasePage {
                 && isVisible(cartNav)
                 && isVisible(signOutButton);
     }
+
+    public LoginPage signOut() {
+        click(signOutButton);
+        return new LoginPage(driver).waitUntilLoaded();
+    }
 }

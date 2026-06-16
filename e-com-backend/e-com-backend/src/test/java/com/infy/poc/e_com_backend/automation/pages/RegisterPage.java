@@ -8,7 +8,7 @@ public class RegisterPage extends BasePage {
     private final By nameInput = By.cssSelector("input[name='name']");
     private final By emailInput = By.cssSelector("input[name='email']");
     private final By passwordInput = By.cssSelector("input[name='password']");
-    private final By createAccountButton = By.xpath("//button[normalize-space()='Create account' or contains(normalize-space(),'Creating')]");
+    private final By createAccountButton = By.xpath("//button[contains(normalize-space(),'Create account') or contains(normalize-space(),'Creating')]");
     private final By signInLink = By.xpath("//span[contains(normalize-space(),'Sign in')]");
 
     public RegisterPage(WebDriver driver) {

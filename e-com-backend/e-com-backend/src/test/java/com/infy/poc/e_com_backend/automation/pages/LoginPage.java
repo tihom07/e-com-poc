@@ -7,7 +7,7 @@ public class LoginPage extends BasePage {
     private final By heading = By.xpath("//h1[normalize-space()='Sign in to Stride']");
     private final By emailInput = By.cssSelector("input[name='email']");
     private final By passwordInput = By.cssSelector("input[name='password']");
-    private final By signInButton = By.xpath("//button[normalize-space()='Sign in' or contains(normalize-space(),'Signing in')]");
+    private final By signInButton = By.xpath("//button[contains(normalize-space(),'Sign in') or contains(normalize-space(),'Signing in')]");
     private final By createAccountLink = By.xpath("//span[contains(normalize-space(),'Create account')]");
 
     public LoginPage(WebDriver driver) {
