@@ -22,4 +22,14 @@ public final class TestConfig {
         String seconds = System.getProperty("explicit.wait.seconds", "15");
         return Duration.ofSeconds(Long.parseLong(seconds));
     }
+
+    public static Duration implicitWait() {
+        String seconds = System.getProperty("implicit.wait.seconds", "2");
+        return Duration.ofSeconds(Long.parseLong(seconds));
+    }
+
+    public static Duration actionDelay() {
+        String milliseconds = System.getProperty("action.delay.ms", "500");
+        return Duration.ofMillis(Long.parseLong(milliseconds));
+    }
 }

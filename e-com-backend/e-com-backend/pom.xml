@@ -32,6 +32,8 @@
         <headless>false</headless>
         <chrome.driver.path></chrome.driver.path>
         <explicit.wait.seconds>15</explicit.wait.seconds>
+        <implicit.wait.seconds>2</implicit.wait.seconds>
+        <action.delay.ms>500</action.delay.ms>
 	</properties>
 	<dependencies>
         <dependency>
@@ -182,6 +184,8 @@
                         <headless>${headless}</headless>
                         <chrome.driver.path>${chrome.driver.path}</chrome.driver.path>
                         <explicit.wait.seconds>${explicit.wait.seconds}</explicit.wait.seconds>
+                        <implicit.wait.seconds>${implicit.wait.seconds}</implicit.wait.seconds>
+                        <action.delay.ms>${action.delay.ms}</action.delay.ms>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

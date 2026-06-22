@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="POC UI Automation Suite" verbose="1">
-    <test name="Authentication Flow Tests">
+    <test name="UI Automation Tests">
         <classes>
             <class name="com.infy.poc.e_com_backend.automation.tests.AuthenticationFlowTest"/>
+            <class name="com.infy.poc.e_com_backend.automation.tests.ProductListingTest"/>
+            <class name="com.infy.poc.e_com_backend.automation.tests.CartOperationsTest"/>
         </classes>
     </test>
 </suite>

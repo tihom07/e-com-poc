@@ -68,6 +68,11 @@ public class RegisterPage extends BasePage {
         return textIsVisible("Account created");
     }
 
+    public RegisterPage waitForSuccess() {
+        visible(By.xpath("//*[contains(normalize-space(),'Account created')]"));
+        return this;
+    }
+
     public boolean isLoaded() {
         return isVisible(heading) && isVisible(nameInput) && isVisible(emailInput) && isVisible(passwordInput);
     }
