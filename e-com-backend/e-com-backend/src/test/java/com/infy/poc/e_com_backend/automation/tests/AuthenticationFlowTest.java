@@ -1,81 +1,89 @@
 package com.infy.poc.e_com_backend.automation.tests;
 
 import com.infy.poc.e_com_backend.automation.base.BaseTest;
+import com.infy.poc.e_com_backend.automation.data.AuthTestData;
+import com.infy.poc.e_com_backend.automation.data.ExcelTestDataReader;
 import com.infy.poc.e_com_backend.automation.pages.DashboardPage;
 import com.infy.poc.e_com_backend.automation.pages.LoginPage;
 import com.infy.poc.e_com_backend.automation.pages.RegisterPage;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class AuthenticationFlowTest extends BaseTest {
 
-    @Test(priority = 1, description = "Validate registration input field error messages")
-    public void testRegistrationFieldValidation() {
-        RegisterPage registerPage = new RegisterPage(driver).open();
-        
-        // Submit empty form
-        registerPage.submit();
-        Assert.assertTrue(registerPage.hasErrorMessage("Name is required"), "Name required validation failed");
-        Assert.assertTrue(registerPage.hasErrorMessage("Email is required"), "Email required validation failed");
-        Assert.assertTrue(registerPage.hasErrorMessage("Password is required"), "Password required validation failed");
-
-        // Submit invalid email format
-        registerPage.enterName("QA User");
-        registerPage.enterEmail("invalid@email");
-        registerPage.enterPassword("validPassword123");
-        registerPage.submit();
-        Assert.assertTrue(registerPage.hasErrorMessage("Enter a valid email"), "Invalid email validation failed");
-
-        // Submit short password
-        registerPage.enterEmail("qauser@example.com");
-        registerPage.enterPassword("123");
-        registerPage.submit();
-        Assert.assertTrue(registerPage.hasErrorMessage("Minimum 6 characters"), "Short password validation failed");
+    @DataProvider(name = "registrationData")
+    public Object[][] registrationData() {
+        return ExcelTestDataReader.dataProvider("Registration");
     }
 
-    @Test(priority = 2, description = "Validate login input field error messages")
-    public void testLoginFieldValidation() {
-        LoginPage loginPage = new LoginPage(driver).open();
-
-        // Submit empty form
-        loginPage.submit();
-        Assert.assertTrue(loginPage.hasErrorMessage("Email is required"), "Email required validation failed");
-        Assert.assertTrue(loginPage.hasErrorMessage("Password is required"), "Password required validation failed");
-
-        // Submit invalid email format
-        loginPage.enterEmail("invalid@email");
-        loginPage.enterPassword("password123");
-        loginPage.submit();
-        Assert.assertTrue(loginPage.hasErrorMessage("Enter a valid email"), "Invalid email format validation failed");
+    @DataProvider(name = "loginData")
+    public Object[][] loginData() {
+        return ExcelTestDataReader.dataProvider("Login");
     }
 
-    @Test(priority = 3, description = "Verify registration success, invalid login attempt, valid login attempt, and logout")
-    public void testCompleteAuthenticationFlow() {
-        // Register a new user
-        RegisterPage registerPage = new RegisterPage(driver).open();
-        String name = "Automation User";
-        String email = uniqueEmail();
-        String password = "securePassword123";
+    @Test(
+            priority = 1,
+            dataProvider = "registrationData",
+            description = "Validate registration module using Excel test data"
+    )
+    public void testRegistrationWithExcelData(AuthTestData testData) {
+        RegisterPage registerPage = new RegisterPage(driver)
+                .open()
+                .register(
+                        testData.value("Name"),
+                        testData.value("Email"),
+                        testData.value("Password")
+                );
 
-        registerPage.register(name, email, password);
-        Assert.assertTrue(registerPage.hasSuccessMessage(), "Success message 'Account created' should be visible");
+        for (String expectedMessage : testData.expectedMessages()) {
+            Assert.assertTrue(registerPage.hasMessage(expectedMessage),
+                    testData.caseId() + " should show message: " + expectedMessage);
+        }
+    }
 
-        // Navigate to Login (React app has a setTimeout, so direct navigation is cleaner and faster)
-        LoginPage loginPage = new LoginPage(driver).open();
+    @Test(
+            priority = 2,
+            dataProvider = "loginData",
+            description = "Validate login module using Excel test data"
+    )
+    public void testLoginWithExcelData(AuthTestData testData) {
+        if (testData.shouldSetupUser()) {
+            registerUserForLogin(testData);
+        }
 
-        // Attempt login with invalid password
-        loginPage.login(email, "wrongPassword");
-        Assert.assertTrue(loginPage.hasErrorMessage("Invalid email or password"), "Invalid credentials error message validation failed");
+        LoginPage loginPage = new LoginPage(driver)
+                .open()
+                .login(
+                        testData.value("LoginEmail"),
+                        testData.value("LoginPassword")
+                );
 
-        // Login with valid credentials
-        loginPage.login(email, password);
+        if (testData.expectsSuccess()) {
+            DashboardPage dashboardPage = new DashboardPage(driver).waitUntilLoaded();
+            Assert.assertTrue(dashboardPage.isLoaded(),
+                    testData.caseId() + " should load the user dashboard");
 
-        // Verify dashboard loaded
-        DashboardPage dashboardPage = new DashboardPage(driver).waitUntilLoaded();
-        Assert.assertTrue(dashboardPage.isLoaded(), "Dashboard should be fully loaded");
+            loginPage = dashboardPage.signOut();
+            Assert.assertTrue(loginPage.isLoaded(),
+                    testData.caseId() + " should return to login after sign out");
+            return;
+        }
 
-        // Sign out and verify return to login
-        loginPage = dashboardPage.signOut();
-        Assert.assertTrue(loginPage.isLoaded(), "Should be redirected back to the login page after sign out");
+        for (String expectedMessage : testData.expectedMessages()) {
+            Assert.assertTrue(loginPage.hasMessage(expectedMessage),
+                    testData.caseId() + " should show message: " + expectedMessage);
+        }
+    }
+
+    private void registerUserForLogin(AuthTestData testData) {
+        new RegisterPage(driver)
+                .open()
+                .register(
+                        testData.value("Name"),
+                        testData.value("Email"),
+                        testData.value("RegistrationPassword")
+                )
+                .waitForSuccess();
     }
 }

@@ -1,6 +1,8 @@
 package com.infy.poc.e_com_backend.automation.base;
 
 import com.infy.poc.e_com_backend.automation.config.TestConfig;
+import com.infy.poc.e_com_backend.automation.data.AuthTestData;
+import com.infy.poc.e_com_backend.automation.data.ExcelTestDataReader;
 import com.infy.poc.e_com_backend.automation.driver.WebDriverFactory;
 import com.infy.poc.e_com_backend.automation.pages.DashboardPage;
 import com.infy.poc.e_com_backend.automation.pages.LoginPage;
@@ -33,9 +35,10 @@ public abstract class BaseTest {
     }
 
     protected DashboardPage registerAndLoginNewUser() {
-        String name = "Automation User";
-        String email = uniqueEmail();
-        String password = "securePassword123";
+        AuthTestData user = ExcelTestDataReader.defaultRegistrationUser();
+        String name = user.value("Name");
+        String email = user.value("Email");
+        String password = user.value("Password");
 
         new RegisterPage(driver)
                 .open()

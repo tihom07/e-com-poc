@@ -51,6 +51,11 @@ public class DashboardPage extends BasePage {
         return new CartPage(driver).waitUntilLoaded();
     }
 
+    public OrderHistoryPage goToOrders() {
+        click(ordersNav);
+        return new OrderHistoryPage(driver).waitUntilLoaded();
+    }
+
     public boolean isHomeHeroVisible() {
         return isVisible(homeHero);
     }

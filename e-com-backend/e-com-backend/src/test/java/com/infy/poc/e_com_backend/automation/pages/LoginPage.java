@@ -56,6 +56,10 @@ public class LoginPage extends BasePage {
         return textIsVisible(message);
     }
 
+    public boolean hasMessage(String message) {
+        return textIsVisible(message);
+    }
+
     public boolean isLoaded() {
         return isVisible(heading) && isVisible(emailInput) && isVisible(passwordInput);
     }

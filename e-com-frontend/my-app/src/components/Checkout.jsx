@@ -202,7 +202,6 @@ const Checkout = ({ onBack, onOrderSuccess }) => {
                                         value={formData.phone}
                                         onChange={handleChange}
                                         placeholder="10 digit number"
-                                        maxLength={10}
                                         style={{
                                             ...styles.input,
                                             borderColor: errors.phone
@@ -288,7 +287,6 @@ const Checkout = ({ onBack, onOrderSuccess }) => {
                                         value={formData.pincode}
                                         onChange={handleChange}
                                         placeholder="400001"
-                                        maxLength={6}
                                         style={{
                                             ...styles.input,
                                             borderColor: errors.pincode

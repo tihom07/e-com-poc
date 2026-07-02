@@ -6,6 +6,7 @@
             <class name="com.infy.poc.e_com_backend.automation.tests.AuthenticationFlowTest"/>
             <class name="com.infy.poc.e_com_backend.automation.tests.ProductListingTest"/>
             <class name="com.infy.poc.e_com_backend.automation.tests.CartOperationsTest"/>
+            <class name="com.infy.poc.e_com_backend.automation.tests.CheckoutFlowTest"/>
         </classes>
     </test>
 </suite>

@@ -43,6 +43,11 @@ public class CartPage extends BasePage {
         return new ProductListPage(driver).waitUntilLoaded();
     }
 
+    public CheckoutPage proceedToCheckout() {
+        click(checkoutButton);
+        return new CheckoutPage(driver).waitUntilLoaded();
+    }
+
     public CartPage increaseQuantity(String productName, int expectedQuantity) {
         click(By.xpath(itemRoot(productName) + "//button[normalize-space()='+']"));
         return waitForQuantity(productName, expectedQuantity);

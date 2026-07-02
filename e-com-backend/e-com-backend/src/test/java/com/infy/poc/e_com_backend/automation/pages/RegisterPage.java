@@ -64,6 +64,10 @@ public class RegisterPage extends BasePage {
         return textIsVisible(message);
     }
 
+    public boolean hasMessage(String message) {
+        return textIsVisible(message);
+    }
+
     public boolean hasSuccessMessage() {
         return textIsVisible("Account created");
     }
